@@ -105,7 +105,7 @@ Demo is installed! Give it a few minutes to finish deployments and then:
     Openshift Console and viewing the Developer -> Topology for both the demo-dev and demo-stage
     projects. You can click through to the web frontend for both versions of the app.
 
-## Developer Experience Demo
+**Developer Experience Demo**
 
 1) Log into OpenShift Dev Spaces
 
