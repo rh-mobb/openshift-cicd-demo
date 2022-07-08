@@ -43,19 +43,6 @@ Argo CD continuously monitor the configurations stored in the Git repository and
 
 ## Deploy
 
-### Get an OpenShift Cluster
-
-You can get an OpenShift cluster by visiting[https://try.openshift.com](https://try.openshift.com).
-
-You could also choose to deploy an Azure Red Hat OpenShift (ARO) or Red Hat OpenShift on AWS (ROSA) cluster.
-
-In fact deploying a ROSA cluster in your AWS Account is as simple as running one command with the [rosa cli](https://docs.openshift.com/rosa/rosa_install_access_delete_clusters/rosa_getting_started_iam/rosa-installing-rosa.html).
-
-```bash
-rosa create cluster -c cicd-demo \
-  --enable-autoscaling --min-replicas=2 --max-replicas=6
-```
-
 ### Prepare Cluster
 
 1. Clone this repo
@@ -65,23 +52,18 @@ rosa create cluster -c cicd-demo \
    cd openshift-cicd-demo
    ```
 
-1. Install OpenShift GitOps Operator
+1. Deploy a ROSA cluster
 
    ```bash
-   oc apply -f ./infra/gitops.yaml
+   make rosa.create
    ```
 
-1. Install OpenShift Pipelines Operator
+1. Use the command from the above to log into the cluster. Remember the username,password for later.
 
-    ```bash
-    oc apply -f ./infra/pipelines.yaml
-    ```
-
-1. Deploy the demo
+1. Install GitOps / Pipelines and the Demo infrastructure
 
    ```bash
-   oc new-project demo
-   ./demo.sh install
+   make install
    ```
 
 ## Demo Instructions
@@ -91,14 +73,14 @@ rosa create cluster -c cicd-demo \
 
 1. Start the deploy pipeline by making a change in the `spring-petclinic` Git repository on Gitea, or run the following:
 
-    ```text
-    $ demo.sh start
+    ```bash
+    make start
     ```
 
 1. Check pipeline run logs
 
     ```text
-    $ tkn pipeline logs petclinic-build -L -f -n demo-cicd
+    tkn pipeline logs petclinic-build -L -f -n demo-cicd
     ```
 
 ![Pipeline Diagram](docs/images/pipeline-viz.png)
@@ -177,6 +159,19 @@ SonarQube: https://sonarqube-demo-cicd.apps.demo-cluster.xxxx.p1.openshiftapps.c
 Sonatype Nexus: https://nexus-demo-cicd.apps.demo-cluster.xxxx.p1.openshiftapps.com
 Argo CD:  https://argocd-server-demo-cicd.apps.demo-cluster.xxxx.p1.openshiftapps.com  [login with OpenShift credentials]
 
+## Cleanup
+
+1. Uninstall the demo
+
+   ```bash
+   make uninstall
+   ```
+
+1. Delete the ROSA cluster
+
+   ```bash
+   make rosa.delete
+   ```
 
 ## Troubleshooting
 
