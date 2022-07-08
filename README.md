@@ -16,8 +16,12 @@ This repo is a CI/CD demo using [Tekton Pipelines](http://www.tekton.dev) for co
 
 ## Prerequisites
 
+* An OpenShift Cluster
 * OpenShift Pipelines 1.7
 * OpenShift GitOps 1.5
+* [OpenShift CLI](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest
+* [Tekton CLI](https://github.com/tektoncd/cli/releases)
+
 ## Continuous Integration
 
 On every push to the `spring-petclinic` git repository on Gitea git server, the following steps are executed within the Tekton pipeline:
@@ -39,16 +43,51 @@ Argo CD continuously monitor the configurations stored in the Git repository and
 
 ## Deploy
 
-1. Get an OpenShift cluster via https://try.openshift.com
+### Get an OpenShift Cluster
+
+You can get an OpenShift cluster by visiting[https://try.openshift.com](https://try.openshift.com).
+
+You could also choose to deploy an Azure Red Hat OpenShift (ARO) or Red Hat OpenShift on AWS (ROSA) cluster.
+
+In fact deploying a ROSA cluster in your AWS Account is as simple as running one command with the [rosa cli](https://docs.openshift.com/rosa/rosa_install_access_delete_clusters/rosa_getting_started_iam/rosa-installing-rosa.html).
+
+```bash
+rosa create cluster -c cicd-demo \
+  --enable-autoscaling --min-replicas=2 --max-replicas=6
+```
+
+### Prepare Cluster
+
+1. Clone this repo
+
+   ```bash
+   git clone https://github.com/siamaksade/openshift-cicd-demo
+   cd openshift-cicd-demo
+   ```
+
 1. Install OpenShift GitOps Operator
-1. Download [OpenShift CLI](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/) and [Tekton CLI](https://github.com/tektoncd/cli/releases)
+
+   ```bash
+   oc apply -f ./infra/gitops.yaml
+   ```
+
+1. Install OpenShift Pipelines Operator
+
+    ```bash
+    oc apply -f ./infra/pipelines.yaml
+    ```
+
 1. Deploy the demo
 
-    ```text
-    $ oc new-project demo
-    $ git clone https://github.com/siamaksade/openshift-cicd-demo
-    $ demo.sh install
-    ```
+   ```bash
+   oc new-project demo
+   ./demo.sh install
+   ```
+
+## Demo Instructions
+
+
+1. Once the demo is deployed, it will provide you instructions to run the demo with URLs etc prepopulated.
 
 1. Start the deploy pipeline by making a change in the `spring-petclinic` Git repository on Gitea, or run the following:
 
@@ -66,26 +105,78 @@ Argo CD continuously monitor the configurations stored in the Git repository and
 
 ![Argo CD](docs/images/argocd.png)
 
-## Demo Instructions
+The follow steps are a generic version of the instructions found in the output from above.
 
-1. Go to spring-petclinic Git repository in Gitea
-1. Log into Gitea with username/password: `gitea`/`openshift`
-1. Edit a file in the repository and commit to trigger the pipeline
-1. Check the pipeline run logs in Dev Console or Tekton CLI:
+Demo is installed! Give it a few minutes to finish deployments and then:
 
-   ```text
-   $ tkn pipeline logs petclinic-build -L -f -n demo-cicd
-   ```
+1) Start the Tekton pipeline, this will perform a full build including tests:
 
-1. Once the pipeline finishes successfully, the image reference in the `spring-petclinic-config/environments/dev` are updated with the new image digest and automatically deployed to the DEV environment by Argo CD. If Argo CD hasn't polled the Git repo for changes yet, click on the "Refresh" button on the Argo CD application.
+  ./demo.sh start
 
-1. Login into Argo CD dashboard and check the sync history of `dev-spring-petclinic` application to verify the recent deployment
+2) Log into the OpenShift Console and browse to Developer -> Pipelines
 
-1. Go to the pull requests tab on `spring-petclinic-config` Git repository in Gitea and merge the pull-requested that is generated for promotion from DEV to STAGE
+  https://console-openshift-console.apps.demo-cluster.xxxx.p1.openshiftapps.com/dev-pipelines/ns/demo-cicd
 
-    ![Promotion Pull-Request](docs/images/promote-pr.png)
+4) You should see the pipeline running, click the "Last Run".
 
-1. Check the sync history of `stage-spring-petclinic` application in Argo CD dashboard to verify the recent deployment to the staging environment. If Argo CD hasn't polled the Git repo for changes yet, click on the "Refresh" button on the Argo CD application.
+5) Check that both the dev and stage versions of petclinic are running by browsing to the
+    Openshift Console and viewing the Developer -> Topology for both the demo-dev and demo-stage
+    projects. You can click through to the web frontend for both versions of the app.
+
+## Developer Experience Demo
+
+1) Log into OpenShift Dev Spaces
+
+    https://devspaces-openshift-operators.apps.demo-cluster.xxxx.p1.openshiftapps.com
+
+
+2) Create a Workspace from the URL below.
+
+    https://gitea-demo-cicd.apps.demo-cluster.xxxx.p1.openshiftapps.com/gitea/spring-petclinic/raw/branch/main/devfile.yaml
+
+3) Open Terminal -> New Terminal -> theia-ide
+
+4) In the Terminal run the following commands:
+  git config --global user.name "openshift developer"
+  git config --global user.email "developer@openshift.dev"
+  git remote set-url origin https://gitea:openshift@gitea-demo-cicd.apps.demo-cluster.xxxx.p1.openshiftapps.com/gitea/spring-petclinic.git
+
+4) Edit a file in the repository and commit to trigger the pipeline (You can
+do all of this from inside the Dev Spaces Workspace, or via git in the Terminal).
+
+  Example change the greeting in src->main->resources->messages->messages.properties
+
+5) Check the pipeline run logs in Dev Console or Tekton CLI:
+
+  https://console-openshift-console.apps.demo-cluster.xxxx.p1.openshiftapps.com/dev-pipelines/ns/demo-cicd
+
+  $ tkn pipeline logs petclinic-build -L -f -n demo-cicd
+
+6) Once the pipeline is finished Openshift GitOps will deploy the new code to the dev
+    environment (It can take a few minutes to sync). You can check it here:
+
+    https://argocd-server-demo-cicd.apps.demo-cluster.xxxx.p1.openshiftapps.com
+
+6) Once GitOps has completed the sync you can view the change in the dev instance of the app
+    If you updated the message it should show it after the "Welcome" text.
+
+  http://spring-petclinic-demo-dev.apps.demo-cluster.xxxx.p1.openshiftapps.com
+
+  https://console-openshift-console.apps.demo-cluster.xxxx.p1.openshiftapps.com/dev-spring-petclinic/ns/demo-dev
+
+7) The pipeline also created a PR to promote the change to production in the config repo.
+    Merge the pull request and watch GitOps sync to the stage environment. (It can take
+    a few minutes to sync)
+
+    https://gitea-demo-cicd.apps.demo-cluster.xxxx.p1.openshiftapps.com/gitea/spring-petclinic-config/pulls
+
+You can find further details at:
+
+Gitea Git Server: https://gitea-demo-cicd.apps.demo-cluster.xxxx.p1.openshiftapps.com/explore/repos
+SonarQube: https://sonarqube-demo-cicd.apps.demo-cluster.xxxx.p1.openshiftapps.com
+Sonatype Nexus: https://nexus-demo-cicd.apps.demo-cluster.xxxx.p1.openshiftapps.com
+Argo CD:  https://argocd-server-demo-cicd.apps.demo-cluster.xxxx.p1.openshiftapps.com  [login with OpenShift credentials]
+
 
 ## Troubleshooting
 
@@ -108,3 +199,6 @@ oc adm policy add-cluster-role-to-group cluster-admin ocp-admins
 # add username to ocp-admins group
 oc adm groups add-users ocp-admins USERNAME
 ```
+
+
+

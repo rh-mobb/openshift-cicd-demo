@@ -3,6 +3,11 @@ kind: PipelineRun
 metadata:
   generateName: petclinic-build-
 spec:
+  params:
+    - name: APP_SOURCE_GIT
+      value: __APP_SOURCE_GIT__
+    - name: APP_MANIFESTS_GIT
+      value: __APP_MANIFESTS_GIT__
   pipelineRef:
     name: petclinic-build
   workspaces:

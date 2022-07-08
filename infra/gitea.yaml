@@ -124,6 +124,9 @@ metadata:
 spec:
   to:
     name: gitea
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
 ---
 apiVersion: apps/v1
 kind: Deployment

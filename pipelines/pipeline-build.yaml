@@ -11,7 +11,7 @@ spec:
     - name: APP_SOURCE_REVISION
       type: string
       description: The application git revision
-      default: master
+      default: HEAD
     - name: APP_MANIFESTS_GIT
       type: string
       description: The application manifests git repository
@@ -110,7 +110,7 @@ spec:
     - name: GOALS
       value:
       - deploy
-      - -f 
+      - -f
       - spring-petclinic
       - -DskipTests=true
       - -DaltDeploymentRepository=nexus::default::http://nexus:8081/repository/maven-releases/
@@ -176,3 +176,16 @@ spec:
     workspaces:
     - name: workspace
       workspace: workspace
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: petclinic-build-workspace
+spec:
+  resources:
+    requests:
+      storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+---

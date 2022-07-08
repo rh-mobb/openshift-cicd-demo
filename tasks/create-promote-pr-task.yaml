@@ -48,8 +48,8 @@ spec:
         git status
         git add $(params.COPY_TO_PATH)
         git commit -m "[$(context.taskRun.name)] Promotion from $(params.COPY_FROM_PATH) to $(params.COPY_TO_PATH)"
-
-        git remote add auth-origin $(echo $(params.GIT_REPOSITORY) | sed -E "s#http://(.*)#http://$(params.GIT_USERNAME):$(params.GIT_PASSWORD)@\1#g")
+        GIT_REMOTE=$(echo $(params.GIT_REPOSITORY) | sed -E "s#://(.*)#://$(params.GIT_USERNAME):$(params.GIT_PASSWORD)@\1#g")
+        git remote add auth-origin $GIT_REMOTE
         git push -u auth-origin HEAD
     - name: create-pull-request
       workingDir: $(workspaces.workspace.path)
@@ -58,12 +58,12 @@ spec:
         #!/usr/bin/env python3
 
         import os
-        import requests 
+        import requests
 
         gitea_user = "$(params.GIT_USERNAME)"
         gitea_pwd = "$(params.GIT_PASSWORD)"
         giteaURL = "http://" + os.popen('oc get svc gitea -o template --template="{{.spec.clusterIP}}"').read() + ":3000"
-        
+
         branch_result = open("$(results.branch_name.path)")
         git_branch = branch_result.read()
         branch_result.close()
@@ -75,13 +75,13 @@ spec:
         pr_body = "TaskRun $(context.taskRun.name)\\nPromoting application from DEV to STAGE environment"
         data_pr = '{"base": "master","body": "' + pr_body + '","head": "' + git_branch + '","title": "' + pr_title + '"}'
         headers = {'Content-Type': 'application/json'}
-        resp = requests.post(url = giteaURL + "/api/v1/repos/" + gitea_user + "/spring-petclinic-config/pulls", 
-                            headers = headers, 
-                            auth = (gitea_user, gitea_pwd), 
-                            data = data_pr) 
-                             
+        resp = requests.post(url = giteaURL + "/api/v1/repos/" + gitea_user + "/spring-petclinic-config/pulls",
+                            headers = headers,
+                            auth = (gitea_user, gitea_pwd),
+                            data = data_pr)
 
-        if resp.status_code != 200:
+
+        if resp.status_code not in [200,201,202]:
           print("Error creating pull-request (status code: {})".format(resp.status_code))
           print(resp.content)
         else:
