@@ -109,6 +109,14 @@ command.install() {
   done
     echo ""
 
+  info "Wait for tekton CRDs to be ready"
+  until oc explain triggerbinding >/dev/null 2>/dev/null
+  do
+    echo -n "."
+    sleep 3
+  done
+    echo ""
+
   DEVSPACES_HOSTNAME=$(oc get route devspaces -o template --template='{{.spec.host}}' -n openshift-operators)
   info "OpenShift Dev Spaces UI is available at http://$DEVSPACES_HOSTNAME"
 
