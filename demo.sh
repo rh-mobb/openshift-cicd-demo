@@ -218,7 +218,7 @@ EOF
 
   1) Start the Tekton pipeline, this wil perform a full build and run tests:
 
-    ./demo.sh start
+    make start
 
   2) Log into the OpenShift Console and browse to Developer -> Pipelines
 
@@ -226,13 +226,18 @@ EOF
 
   4) You should see the pipeline running, click the "Last Run".
 
-  5) Check that both the dev and stage versions of petclinic are running by browsing to the
+  5) Wait for the pipeline to finish, you can waitch the Logs in the console, or by running:
+
+     tkn pipeline logs petclinic-build -L -f -n $cicd_prj
+
+  6) Check that both the dev and stage versions of petclinic are running by browsing to the
       Openshift Console and viewing the Developer -> Topology for both the $dev_prj and $stage_prj
       projects. You can click through to the web frontend for both versions of the app.
 
-  6) Wait for the pipeline to finish, you can waitch the Logs in the console, or by running:
+    Dev   -> http://$(oc get route spring-petclinic -o template --template='{{.spec.host}}' -n $dev_prj)
 
-     tkn pipeline logs petclinic-build -L -f -n $cicd_prj
+    Stage -> http://$(oc get route spring-petclinic -o template --template='{{.spec.host}}' -n $stage_prj)
+
 
   ## Developer Experience Demo
 
@@ -268,7 +273,7 @@ EOF
 
      Browse to https://$GITEA_HOSTNAME/gitea/spring-petclinic-config/src/branch/master/app/route.yaml
 
-     Log in using gitea/openshift and edit the file.  uncomment the `TLS` section of the route and save it.
+     Log in using gitea/openshift and edit the file, Uncomment the "TLS" section of the route and save it.
 
      After a few minutes OpenShift GitOps will have fixed it and if you refresh the petclinic apps in dev
      and stage, you should see the app now protected by TLS.
@@ -282,8 +287,6 @@ EOF
      If you updated the message it should show it after the "Welcome" text.
 
     http://$(oc get route spring-petclinic -o template --template='{{.spec.host}}' -n $dev_prj)
-
-    $CONSOLE/dev-spring-petclinic/ns/$dev_prj
 
   9) The pipeline also created a PR to promote the change to production in the config repo.
      Merge the most recent pull request and watch GitOps sync to the stage environment. (It can take

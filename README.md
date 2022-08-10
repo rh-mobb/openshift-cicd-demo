@@ -48,17 +48,21 @@ Argo CD continuously monitor the configurations stored in the Git repository and
 1. Clone this repo
 
    ```bash
-   git clone https://github.com/siamaksade/openshift-cicd-demo
+   git clone https://github.com/paulczar/openshift-cicd-demo
    cd openshift-cicd-demo
    ```
 
 1. Deploy a ROSA cluster
+
+   > If you already have one you can skip this step and go straight to `make install`.
 
    ```bash
    make rosa.create
    ```
 
 1. Use the command from the above to log into the cluster. Remember the username,password for later.
+
+   > Ideally you'll create an OIDC provider for your cluster and use that instead of the admin user, especially as you start to show the user experience.
 
 1. Install GitOps / Pipelines and the Demo infrastructure
 
