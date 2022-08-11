@@ -48,7 +48,7 @@ Argo CD continuously monitor the configurations stored in the Git repository and
 1. Clone this repo
 
    ```bash
-   git clone https://github.com/paulczar/openshift-cicd-demo
+   git clone https://github.com/rh-mobb/openshift-cicd-demo
    cd openshift-cicd-demo
    ```
 

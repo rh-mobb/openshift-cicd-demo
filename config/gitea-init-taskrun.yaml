@@ -16,11 +16,11 @@ spec:
     - name: GITEA_REPO
       type: string
       description: repo to clone
-      default: https://github.com/paulczar/spring-petclinic.git
+      default: https://github.com/rh-mobb/openshift-cicd-demo-spring-petclinic.git
     - name: GITEA_CONFIG_REPO
       type: string
       description: repo to clone
-      default: https://github.com/paulczar/spring-petclinic-config.git
+      default: https://github.com/rh-mobb/openshift-cicd-demo-spring-petclinic-config.git
     stepTemplate:
       env:
         - name: NAMESPACE
